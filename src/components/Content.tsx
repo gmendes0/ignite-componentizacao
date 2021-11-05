@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
+import { Header } from "./Header";
 import { MovieCard } from "./MovieCard";
 
 type ContentProps = {
   genre: Genre;
-  // movies: Movie[];
 };
 
 type Genre = {
@@ -43,16 +43,13 @@ export function Content(props: ContentProps) {
 
   return (
     <>
-      <header>
-        <span className="category">
-          Categoria: <span>{props.genre.title}</span>
-        </span>
-      </header>
+      <Header genreTitle={props.genre.title} />
 
       <main>
         <div className="movies-list">
           {movies.map((movie) => (
             <MovieCard
+              key={movie.imdbID}
               title={movie.Title}
               poster={movie.Poster}
               rating={movie.Ratings[0].Value}
