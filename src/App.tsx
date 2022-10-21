@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { SideBar } from "./components/SideBar";
 import { Content } from "./components/Content";
@@ -15,6 +15,17 @@ interface GenreResponseProps {
   title: string;
 }
 
+type Movie = {
+  imdbID: string;
+  Title: string;
+  Poster: string;
+  Runtime: string;
+  Ratings: Array<{
+    Source: string;
+    Value: string;
+  }>;
+};
+
 export function App() {
   const [selectedGenreId, setSelectedGenreId] = useState(1);
 
@@ -23,6 +34,8 @@ export function App() {
   const [selectedGenre, setSelectedGenre] = useState<GenreResponseProps>(
     {} as GenreResponseProps
   );
+
+  const [movies, setMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
     api
@@ -43,12 +56,27 @@ export function App() {
       .get<GenreResponseProps>(`genres/${selectedGenreId}`)
       .then((response) => {
         setSelectedGenre(response.data);
+
+        return response.data;
+      })
+      .then((genre) => {
+        api
+          .get<Movie[]>(`movies?Genre_id=${genre.id}`)
+          .then((response) => {
+            if (response.status !== 200 || !response.data)
+              throw new Error("Fail to get movies");
+
+            setMovies(response.data);
+          })
+          .catch(() => {
+            window.alert("Fail to get movies");
+          });
       });
   }, [selectedGenreId]);
 
-  function handleClickButton(id: number) {
+  const handleClickButton = useCallback((id: number) => {
     setSelectedGenreId(id);
-  }
+  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "row" }}>
@@ -59,7 +87,7 @@ export function App() {
       />
 
       <div className="container">
-        <Content genre={selectedGenre} />
+        <Content genre={selectedGenre} movies={movies} />
       </div>
     </div>
   );
